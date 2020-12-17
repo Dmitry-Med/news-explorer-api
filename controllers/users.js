@@ -15,7 +15,7 @@ const createUser = (req, res, next) => {
     name,
   } = req.body;
   if (!email || !password) {
-    throw new NotFoundError('Не передан email или password');
+    throw new BadRequestError('Не передан email или password');
   }
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
@@ -32,12 +32,12 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const error = new BadRequestError(`Ошибка валидации: ${Object.keys(err.errors).map((item) => err.errors[item].message).join(', ')}`);
-        next(error);
-      } else if (err.code === 11000) {
+        return next(error);
+      } if (err.code === 11000) {
         const error = new ConflictError('Пользователь с таким email уже зарегистрирован');
-        next(error);
+        return next(error);
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -45,7 +45,7 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email) {
     throw new BadRequestError('Не передан email');
-  } if (!password || !password.trim() || password.trim().length < 8) {
+  } if (!password) {
     throw new BadRequestError('Поле пароль должно быть заполнено');
   }
   return User.findOne({ email })
@@ -63,16 +63,16 @@ const login = (req, res, next) => {
           return res.send({ token });
         })
         .catch(() => {
-          const error = new BadRequestError('Ошибка запроса пароля');
+          const error = new AiuthError('Неправильные почта или пароль');
           next(error);
         });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const error = new BadRequestError(`Ошибка валидации: ${Object.keys(err.errors).map((item) => err.errors[item].message).join(', ')}`);
-        next(error);
+        return next(error);
       }
-      next(err);
+      return next(err);
     });
 };
 

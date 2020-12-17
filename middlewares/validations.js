@@ -4,7 +4,7 @@ const validator = require('validator');
 const validateUserBody = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
     name: Joi.string().required().min(2).max(30),
   }),
 });
@@ -12,7 +12,7 @@ const validateUserBody = celebrate({
 const validateAuthentication = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 });
 
@@ -40,7 +40,7 @@ const validateArticleBody = celebrate({
 
 const validateArticleParams = celebrate({
   params: Joi.object().keys({
-    articleId: Joi.string().alphanum().length(24),
+    articleId: Joi.string().hex().length(24),
   }),
 });
 

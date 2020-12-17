@@ -1,11 +1,14 @@
 const Article = require('../models/article');
 const BadRequestError = require('../errors/bad-req-err');
 const NotFoundError = require('../errors/not-found-err');
-const ConflictError = require('../errors/conflict-err');
+const ForbiddenError = require('../errors/forbidden-err');
 
 const getArticles = (req, res, next) => {
-  Article.find({})
-    .then((data) => res.send(data))
+  const userId = req.user._id;
+  Article.find({ owner: userId })
+    .then((data) => {
+      res.send(data);
+    })
     .catch(next);
 };
 
@@ -45,12 +48,12 @@ const createArticle = (req, res, next) => {
     .catch((err) => {
       if (err.kind === 'ObjectId') {
         const error = new BadRequestError('Невалидный id');
-        next(error);
+        return next(error);
       } if (err.name === 'ValidationError') {
         const error = new BadRequestError(`Ошибка валидации: ${Object.keys(err.errors).map((item) => err.errors[item].message).join(', ')}`);
-        next(error);
+        return next(error);
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -68,18 +71,18 @@ const deleteArticle = (req, res, next) => {
           res.send(newArticle);
         });
       } else {
-        throw new ConflictError('Нельзя удалять чужую сохранённую статью');
+        throw new ForbiddenError('Нельзя удалять чужую сохранённую статью');
       }
     })
     .catch((err) => {
       if (err.kind === 'ObjectId') {
         const error = new BadRequestError('Невалидный id');
-        next(error);
+        return next(error);
       } if (err.name === 'ValidationError') {
         const error = new BadRequestError(`Ошибка валидации: ${Object.keys(err.errors).map((item) => err.errors[item].message).join(', ')}`);
-        next(error);
+        return next(error);
       }
-      next(err);
+      return next(err);
     });
 };
 
